@@ -208,7 +208,7 @@ def update_content_of_upload_info_by_upload_id(db_name, upload_id, file_name):
     """
     Cập nhật lại nội dung cùa upload_id
     """
-    assert isinstance(db_name,str), "db_name must be str"
+    assert isinstance(db_name, str), "db_name must be str"
     assert isinstance(upload_id, str), "upload_id must be str"
     assert isinstance(file_name, str), "file_name must be str"
 
@@ -221,11 +221,11 @@ def update_content_of_upload_info_by_upload_id(db_name, upload_id, file_name):
         return  # Kết thúc
     if not os.path.isfile(file_name):
         raise FileNotFoundError()
-    new_fs = create_mongodb_fs_from_file( # Tải nội dung mới
+    new_fs = create_mongodb_fs_from_file(  # Tải nội dung mới
         db_name=db_name,
         full_path_to_file=file_name
     )
-    db_docs = get_db(db_name) # truy cập vào database tanent
+    db_docs = get_db(db_name)  # truy cập vào database tanent
     """
     Đánh dấu xóa file cũ
     """
@@ -248,7 +248,7 @@ def update_content_of_upload_info_by_upload_id(db_name, upload_id, file_name):
             }
         }
     )
-    if ret_update.matched_count>0:
+    if ret_update.matched_count > 0:
         """
         Cập nhật nộ dung mới thành công
         Xóa nội dung cũ
@@ -267,9 +267,10 @@ def update_content_of_upload_info_by_upload_id(db_name, upload_id, file_name):
                 "filename": "delete." + upload_item.ServerFileName
             },
             {
-                "$set":{"filename": upload_item.ServerFileName}
+                "$set": {"filename": upload_item.ServerFileName}
             }
         )
+
 
 def add_more_content_to_upload_by_upload_id(
         db_name,
@@ -301,9 +302,25 @@ def add_more_content_to_upload_by_upload_id(
     db_docs = get_db(db_name)  # truy cập vào database tanent
 
     db_docs.get_collection("DocUploadRegister").update_one({
-        "_id":upload_item._id,
-    },{
-        "$set":{
-            attr_name:new_fs.filename
+        "_id": upload_item._id,
+    }, {
+        "$set": {
+            attr_name: new_fs.filename
         }
     })
+
+
+def add_ocr_pfd_for_image_upload(
+        db_name,
+        upload_id,
+        file_name
+):
+    """
+    PdfFileServer
+    """
+    add_more_content_to_upload_by_upload_id(
+        db_name,
+        "PdfFileServer",
+        upload_id,
+        file_name
+    )
