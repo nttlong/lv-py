@@ -4,6 +4,7 @@ import os
 import yaml
 import gridfs
 import bson
+from mongodb_obj import MongoDbItem
 
 __working_folder__ = None
 __connection__: None = None  # Biến toàn cục
@@ -157,3 +158,152 @@ def save_mongodb_file_fs_with_file_name_to(db_name, file_name, path_to_save, rea
     if not isinstance(fs, gridfs.grid_file.GridOut):
         raise FileNotFoundError("'{}' in '{}' was not found".format(file_name, db_name))
     save_mongodb_file_fs_to(fs, path_to_save, read_chunk_in_KB)
+
+
+def create_mongodb_fs_from_file(
+        db_name,
+        full_path_to_file) -> gridfs.grid_file.GridIn:
+    """
+    Tạo file trong mongodb theo noi dung nam trong full_path_to_file
+
+    """
+    try:
+        dir_path, file_name = os.path.split(full_path_to_file)
+        g = get_gridfs(db_name)
+
+        fs = g.new_file()
+        fs.name = file_name
+        fs.filename = file_name
+        assert isinstance(fs, gridfs.grid_file.GridIn)
+
+        with open(full_path_to_file, 'rb') as r_file:
+            read_data = r_file.read(fs.chunk_size)
+            while read_data.__len__() > 0:
+                fs.write(read_data)
+                read_data = r_file.read(fs.chunk_size)
+
+    except Exception as e:
+        raise e
+    finally:
+        fs.close()
+    return fs
+
+
+def get_upload_info_by_upload_id(db_name, upload_id):
+    """
+    Lấy thông tin upload theo upload id
+    """
+    assert isinstance(db_name, str), "db_name must be str"
+    assert isinstance(upload_id, str), "db_name must be str"
+    ret = get_db(db_name).get_collection("DocUploadRegister").find_one({
+        "_id": upload_id
+    })
+    if ret:
+        return MongoDbItem(ret)
+    else:
+        return None
+
+
+def update_content_of_upload_info_by_upload_id(db_name, upload_id, file_name):
+    """
+    Cập nhật lại nội dung cùa upload_id
+    """
+    assert isinstance(db_name,str), "db_name must be str"
+    assert isinstance(upload_id, str), "upload_id must be str"
+    assert isinstance(file_name, str), "file_name must be str"
+
+    upload_item = get_upload_info_by_upload_id(  # lấy thông tin upload
+        db_name=db_name,
+        upload_id=upload_id
+    )
+    if not upload_item:  # Nếu không tồn tại upload
+        print("Upload with {} was not found".format(upload_id))  # Thông báo
+        return  # Kết thúc
+    if not os.path.isfile(file_name):
+        raise FileNotFoundError()
+    new_fs = create_mongodb_fs_from_file( # Tải nội dung mới
+        db_name=db_name,
+        full_path_to_file=file_name
+    )
+    db_docs = get_db(db_name) # truy cập vào database tanent
+    """
+    Đánh dấu xóa file cũ
+    """
+    db_docs.get_collection("fs.files").update_one(
+        {
+            "filename": upload_item.ServerFileName
+        }, {
+            "$set": {"filename": "delete." + upload_item.ServerFileName}
+        }
+    )
+
+    """
+    Cập nhật nội dung mới
+    """
+    ret_update = db_docs.get_collection("fs.files").update_one(
+        {
+            "_id": new_fs._id}, {
+            "$set": {
+                "filename": upload_item.ServerFileName
+            }
+        }
+    )
+    if ret_update.matched_count>0:
+        """
+        Cập nhật nộ dung mới thành công
+        Xóa nội dung cũ
+        """
+        db_docs.get_collection("fs.files").delete_one(
+            {
+                "filename": "delete." + upload_item.ServerFileName
+            }
+        )
+    else:
+        """
+        Không thành công trả lại nội dung cũ
+        """
+        db_docs.get_collection("fs.files").update_one(
+            {
+                "filename": "delete." + upload_item.ServerFileName
+            },
+            {
+                "$set":{"filename": upload_item.ServerFileName}
+            }
+        )
+
+def add_more_content_to_upload_by_upload_id(
+        db_name,
+        attr_name,
+        upload_id,
+        file_name
+):
+    """
+    Thêm nội dung file cho upload
+    """
+    assert isinstance(attr_name, str), "attr_name must be str"
+    assert isinstance(db_name, str), "db_name must be str"
+    assert isinstance(upload_id, str), "upload_id must be str"
+    assert isinstance(file_name, str), "file_name must be str"
+
+    upload_item = get_upload_info_by_upload_id(  # lấy thông tin upload
+        db_name=db_name,
+        upload_id=upload_id
+    )
+    if not upload_item:  # Nếu không tồn tại upload
+        print("Upload with {} was not found".format(upload_id))  # Thông báo
+        return  # Kết thúc
+    if not os.path.isfile(file_name):
+        raise FileNotFoundError()
+    new_fs = create_mongodb_fs_from_file(  # Tải nội dung mới
+        db_name=db_name,
+        full_path_to_file=file_name
+    )
+    db_docs = get_db(db_name)  # truy cập vào database tanent
+
+    db_docs.get_collection("DocUploadRegister").update_one({
+        "_id":upload_item._id,
+    },{
+        "$set":{
+            attr_name:new_fs.filename
+        }
+    })
