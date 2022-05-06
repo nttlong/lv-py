@@ -1,0 +1,4 @@
+file-server-host: http://192.168.18.36:5010
+kafka-server: 192.168.18.36:9092
+orc-langs: vie,eng
+fs-crawler-path : \\172.16.7.81\source\fscrawler-es7-2.9\docs
