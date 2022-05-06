@@ -8,3 +8,4 @@ requests~=2.27.1
 docx2pdf~=0.1.8
 kafka-python~=2.0.2
 pymongo >=4.1.1
+requests-toolbelt~=0.9.1

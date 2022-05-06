@@ -4,7 +4,7 @@ import os
 import yaml
 import gridfs
 import bson
-from mongodb_obj import MongoDbItem
+from .mongodb_obj import MongoDbItem
 
 __working_folder__ = None
 __connection__: None = None  # Biến toàn cục

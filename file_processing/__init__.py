@@ -1,5 +1,5 @@
 import os
-from lv_files_client import api, download
+#from lv_files_client import api, download
 from kafka.consumer.group import KafkaConsumer
 from .file_ocr import run_ocrmypdf
 from .convert_image_to_pdf import convert_image_to_pdf
@@ -8,7 +8,8 @@ import settings
 from .fs_crawler_transfer import dispatcher
 from kafka import TopicPartition
 import PyPDF2
-api_call = api(settings.lv_file_server_host)
+import lv_mongo_db
+#api_call = api(settings.lv_file_server_host)
 
 def hander(
         consumer,
@@ -29,6 +30,7 @@ def hander(
 
     upload_info = data["UploadInfo"]  # lấy toàn bộ thông tin upload
     upload_id = upload_info["UploadId"]  # thông tin upload id
+    server_file_name = upload_info["ServerFilename"]
     app = data["Application"]  # thông tin app đang sử dụng
     app_name = app["Name"]  # lấy app name
     file_ext = upload_info["FileExt"]
@@ -53,7 +55,12 @@ def hander(
                               "{}.{}".format(upload_id, file_ext))  # đường dẫn đến file sau khi xử lý
     settings.logger.info(download_to)
     if not os.path.isfile(download_to):
-        download(url_download, download_to, 1024 * 1024 * 5)  # tải nội dung
+        lv_mongo_db.save_mongodb_file_fs_with_file_name_to(
+            db_name=app_name,
+            file_name=server_file_name,
+            path_to_save=download_to
+        )
+        #download(url_download, download_to, 1024 * 1024 * 5)  # tải nội dung
     if file_ext == 'pdf':  # Nếu là file pdf
         if not os.path.isfile(process_to):  # nếu chưa xử lý
             error, ret = run_ocrmypdf(  # xử lý orc
@@ -74,9 +81,8 @@ def hander(
                 settings.logger.info("update '{}' to '{}'".format(process_to, upload_id))
 
                 error, ret = do_update_pdf_content(
-                    api_call=api_call,
+                    app_name=app_name,
                     upload_id=upload_id,
-                    access_token_key=access_token_key,
                     file_content_path=process_to
                 )
                 if error:
@@ -103,9 +109,8 @@ def hander(
             settings.logger.info("update '{}' to '{}'".format(process_to, upload_id))
 
             error, ret = do_update_pdf_content(
-                api_call=api_call,
                 upload_id=upload_id,
-                access_token_key=access_token_key,
+                app_name= app_name,
                 file_content_path=process_to
             )
             if error:
@@ -151,8 +156,8 @@ def hander(
                 print("Update content to {} by {}".format(upload_id, process_to))
                 settings.logger.info("Update content to {} by {}".format(upload_id, process_to))
                 error, ret = do_update_add_content(
-                    api_call=api_call,
-                    access_token_key=access_token_key,
+
+                    app_name= app_name,
                     upload_id=upload_id,
                     file_content_path=process_to
                 )
@@ -189,15 +194,14 @@ def hander(
                 print("ocr file to '{}'".format(process_to))
 
                 settings.logger.info("ocr file to '{}'".format(process_to))
-                run_ocrmypdf(
-                    in_put=pdf_file_path_convert,
-                    out_put=process_to
-                )
-                print("ocr file to '{}' is ok ".format(process_to))
-                settings.logger.info("ocr file to '{}' is ok ".format(process_to))
+                # run_ocrmypdf(
+                #     in_put=pdf_file_path_convert,
+                #     out_put=process_to
+                # )
+                # print("ocr file to '{}' is ok ".format(process_to))
+                # settings.logger.info("ocr file to '{}' is ok ".format(process_to))
                 error, ret = do_update_add_content(
-                    api_call=api_call,
-                    access_token_key=access_token_key,
+                    app_name=app_name,
                     upload_id=upload_id,
                     file_content_path=process_to
                 )

@@ -1,5 +1,6 @@
 import sys
 import os
+import lv_mongo_db
 print(sys.argv)
 if len(sys.argv) ==0 :
 
@@ -14,6 +15,7 @@ if os.path.isfile(working_dir):
     working_dir = os.path.dirname(os.path.realpath(working_dir))
 import settings
 settings.load_form_working_dir(working_dir)
+lv_mongo_db.set_working_folder(working_dir)
 settings.logger.info("Running on '{}'".format(working_dir))
 # sys.path.append(working_dir)
 # sys.path.append(os.path.join(working_dir,"evnv"))

@@ -27,7 +27,10 @@ def load_form_working_dir(working_dir):
     config = {}
     config_path = os.path.join(working_dir,"settings.yaml")
     print("load ... '{}'".format(config_path))
-    with open(config_path, 'r') as stream:
+    with open(config_path,
+              mode="r",
+              encoding="utf-8"
+              ) as stream:
         try:
             config = yaml.safe_load(stream)
 
