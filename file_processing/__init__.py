@@ -131,7 +131,7 @@ def hander(
                     print("Process {} is total complete".format(upload_id))
                     settings.logger.info("Process {} is total complete".format(upload_id))
 
-    if 'image/' in mime_type:
+    elif 'image/' in mime_type:
         pdf_file_path_convert = os.path.join(settings.ocr_in_directory, "{}.pdf".format(upload_id))
         if not os.path.isfile(pdf_file_path_convert):
             error, ret = convert_image_to_pdf(download_to, pdf_file_path_convert)
@@ -194,12 +194,7 @@ def hander(
                 print("ocr file to '{}'".format(process_to))
 
                 settings.logger.info("ocr file to '{}'".format(process_to))
-                # run_ocrmypdf(
-                #     in_put=pdf_file_path_convert,
-                #     out_put=process_to
-                # )
-                # print("ocr file to '{}' is ok ".format(process_to))
-                # settings.logger.info("ocr file to '{}' is ok ".format(process_to))
+
                 error, ret = do_update_add_content(
                     app_name=app_name,
                     upload_id=upload_id,
@@ -221,3 +216,14 @@ def hander(
                         consumer.commit()
                         print("Process {} is total complete".format(upload_id))
                         settings.logger.info("Process {} is total complete".format(upload_id))
+    else:
+        error, ret = dispatcher(download_to, app_name)
+        if error:
+            print("Transfer to Elasticsearch content is error")
+            print(error)
+            settings.logger.debug("Transfer to Elasticsearch content is error")
+            settings.logger.debug(error)
+        else:
+            consumer.commit()
+            print("Process {} is total complete".format(upload_id))
+            settings.logger.info("Process {} is total complete".format(upload_id))

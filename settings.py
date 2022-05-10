@@ -11,7 +11,7 @@ lang_processing = [
     'vie',
     'eng'
 ]
-fs_crawler_path = r'\\172.16.7.81\source\fscrawler-es7-2.9\docs'
+fs_crawler_path = None
 poppler_path = ""
 kafka_server = None
 lv_file_server_host = ""
@@ -24,6 +24,7 @@ def load_form_working_dir(working_dir):
     global ocr_temp_directory
     global ocr_in_directory
     global ocr_out_directory
+    global fs_crawler_path
     config = {}
     config_path = os.path.join(working_dir,"settings.yaml")
     print("load ... '{}'".format(config_path))
