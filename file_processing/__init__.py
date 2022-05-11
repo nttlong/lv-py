@@ -55,11 +55,18 @@ def hander(
                               "{}.{}".format(upload_id, file_ext))  # đường dẫn đến file sau khi xử lý
     settings.logger.info(download_to)
     if not os.path.isfile(download_to):
-        lv_mongo_db.save_mongodb_file_fs_with_file_name_to(
-            db_name=app_name,
-            file_name=server_file_name,
-            path_to_save=download_to
-        )
+        try:
+            lv_mongo_db.save_mongodb_file_fs_with_file_name_to(
+                db_name=app_name,
+                file_name=server_file_name,
+                path_to_save=download_to
+            )
+        except Exception as e:
+            settings.logger.info("{} is not exist".format(download_to))
+            consumer.commit()
+
+
+            return
         #download(url_download, download_to, 1024 * 1024 * 5)  # tải nội dung
     if file_ext == 'pdf':  # Nếu là file pdf
         if not os.path.isfile(process_to):  # nếu chưa xử lý

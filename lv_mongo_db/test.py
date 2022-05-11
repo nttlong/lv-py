@@ -16,12 +16,12 @@ tt =g.find_one({
 
 lst =list(lv_mongo_db.get_db(db_name=test_db_name).list_collection_names())
 print(lst)
-upload_id ='07ec1951-800f-4edc-96d3-04dca15b7c55'
+upload_id ='0efefdf2-10d8-4151-a7af-a1d5e72b705d'
 upload_item =lv_mongo_db.get_upload_info_by_upload_id(db_name=test_db_name,upload_id=upload_id)
 
 lv_mongo_db.update_content_of_upload_info_by_upload_id(
     db_name=test_db_name,
-    file_name=r'\\192.168.18.36\ocr\docs\out\07ec1951-800f-4edc-96d3-04dca15b7c55.pdf',
+    file_name=r'\\192.168.18.36\ocr\docs\out\e7c5596d-606b-4c2a-b341-e04291e9f6ac.pdf',
     upload_id= upload_id
 )
 print("Xong")

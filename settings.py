@@ -3,6 +3,7 @@
 import os
 import logging
 import yaml
+from logging.handlers import RotatingFileHandler
 ocr_temp_directory  = None
 ocr_in_directory = None
 ocr_out_directory = None
@@ -102,6 +103,7 @@ def load_form_working_dir(working_dir):
     __formatter__ = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s',
                                       '%m-%d-%Y %H:%M:%S')
 
+    __max_log_size__ = 1024*1024
     logger.setLevel(
         logging.DEBUG
         # logging.INFO
@@ -111,21 +113,44 @@ def load_form_working_dir(working_dir):
     __path_to_info_logs__ = os.path.join(log_path, 'info')
     if not os.path.isdir(__path_to_info_logs__):
         os.mkdir(__path_to_info_logs__)
-    __logger_info_handler__ = logging.FileHandler(os.path.join(__path_to_info_logs__, 'logs.txt'))
+
+    __logger_info_handler__ = RotatingFileHandler(
+        log_path= os.path.join(__path_to_info_logs__, 'logs.txt'),
+        mode='a',
+        maxBytes=__max_log_size__,
+        backupCount=5,
+        delay= 0
+
+
+
+    )
     __logger_info_handler__.setLevel(logging.INFO)
     __logger_info_handler__.setFormatter(__formatter__)
 
     __path_to_error_logs__ = os.path.join(log_path, 'error')
     if not os.path.isdir(__path_to_error_logs__):
         os.mkdir(__path_to_error_logs__)
-    __logger_error_handler__ = logging.FileHandler(os.path.join(__path_to_error_logs__, 'logs.txt'))
+    __logger_error_handler__ = RotatingFileHandler(
+        log_path = os.path.join(__path_to_error_logs__, 'logs.txt'),
+        mode='a',
+        maxBytes=__max_log_size__,
+        backupCount=5,
+        delay=0
+    )
     __logger_error_handler__.setLevel(logging.ERROR)
     __logger_error_handler__.setFormatter(__formatter__)
 
     __path_to_debug_logs__ = os.path.join(log_path, 'debug')
     if not os.path.isdir(__path_to_debug_logs__):
         os.mkdir(__path_to_debug_logs__)
-    __logger_debug_handler__ = logging.FileHandler(os.path.join(__path_to_debug_logs__, 'logs.txt'))
+    __logger_debug_handler__ = RotatingFileHandler(
+        log_path = os.path.join(__path_to_debug_logs__, 'logs.txt'),
+        mode='a',
+        maxBytes=__max_log_size__,
+        backupCount=5,
+        delay=0
+
+    )
     __logger_debug_handler__.setLevel(logging.DEBUG)
     __logger_debug_handler__.setFormatter(__formatter__)
 

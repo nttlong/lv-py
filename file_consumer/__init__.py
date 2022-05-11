@@ -1,7 +1,12 @@
+import time
 from json import dumps
 from kafka import KafkaProducer, consumer
 from json import loads
 from kafka import KafkaConsumer
+
+import settings
+
+
 def runner(
         logger,
         topic_id,
@@ -10,18 +15,25 @@ def runner(
         process_handler
 
          ):
-    __consumer__ = KafkaConsumer(
-        topic_id,
-        bootstrap_servers= bootstrap_servers,
-        auto_offset_reset='earliest',
-        group_id=group_id,
-        enable_auto_commit = False,
+    __consumer__ = None
+    while not  __consumer__:
+        try:
+            __consumer__ = KafkaConsumer(
+                    topic_id,
+                    bootstrap_servers= bootstrap_servers,
+                    auto_offset_reset='earliest',
+                    group_id=group_id,
+                    enable_auto_commit = False,
 
-        value_deserializer=lambda x: loads(x.decode('utf-8'))
-     )
+                    value_deserializer=lambda x: loads(x.decode('utf-8'))
+                 )
+        except Exception as e:
+            settings.logger.debug(e)
+            settings.logger.info("Will resume at 5 s")
+            time.sleep(3)
     while True:
         try:
-            msg = __consumer__.poll(timeout_ms=5)
+            msg = __consumer__.poll(timeout_ms=1)
             if msg.values().__len__()>0:
                 logger.info("recive new topic")
 
