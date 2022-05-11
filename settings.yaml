@@ -1,7 +1,8 @@
 file-server-host: http://192.168.18.36:5010 #
 kafka-server: 192.168.18.36:9092 # Kafka server, trường hợp nhiều broker cách nhau bằng dấu ,
 orc-langs: vie,eng # ngôn ngữ nhận dạng Việt hoặc anh
-fs-crawler-path : \\192.168.18.36\fscrawler-es7-2.9\docs #đường dẫn đến thư mục của fs crawler
+fs-crawler-path : D:\fscrawler-es7-2.9\docs #đường dẫn đến thư mục của fs crawler
+max-workers: 5
 mongodb:
   servers: 192.168.18.36:27018 #for multi server in replcate set seperated by comma exmaple server1:port1,server2:port2
   replace-set: rs0 #prelica set name
@@ -9,9 +10,3 @@ mongodb:
   username: admin-doc
   password: 123456
 
-office-file-extension: [
-                          docx,doc,xls,xlsx,txt,pdf,ppx,pptx,json,pdf,psd,html,xml,js,otg,svg,vsd,
-                          ODT,CSV,DB,DOC,DOCX,DOTX,FODP,FODS,FODT,MML,ODB,ODF,ODG,ODM,ODP,ODS,OTG,OTP,
-                          OTS,OTT,OXT,PDF,PPTX,PSW,SDA,SDC,SDD,SDP,SDW,SLK,
-                          SMF,STC,STD,STI,STW,SXC,SXG,SXI,SXM,UOF,UOP,UOS,UOT,
-                          VSD,VSDX,WDB,WPS,WRI,XLS,XLSX]

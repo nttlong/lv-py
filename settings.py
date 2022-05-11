@@ -16,8 +16,9 @@ fs_crawler_path = None
 poppler_path = ""
 kafka_server = None
 lv_file_server_host = ""
-
-
+max_workers =1
+current_working_dir = None
+data_dir = None
 def load_form_working_dir(working_dir):
     global poppler_path
     global kafka_server
@@ -26,6 +27,12 @@ def load_form_working_dir(working_dir):
     global ocr_in_directory
     global ocr_out_directory
     global fs_crawler_path
+    global current_working_dir
+    global data_dir
+    current_working_dir = working_dir
+    data_dir = os.path.join(working_dir,"data")
+    if not os.path.isdir(data_dir):
+        os.mkdir(data_dir)
     config = {}
     config_path = os.path.join(working_dir,"settings.yaml")
     print("load ... '{}'".format(config_path))
@@ -115,7 +122,7 @@ def load_form_working_dir(working_dir):
         os.mkdir(__path_to_info_logs__)
 
     __logger_info_handler__ = RotatingFileHandler(
-        log_path= os.path.join(__path_to_info_logs__, 'logs.txt'),
+        os.path.join(__path_to_info_logs__, 'logs.txt'),
         mode='a',
         maxBytes=__max_log_size__,
         backupCount=5,
@@ -131,7 +138,7 @@ def load_form_working_dir(working_dir):
     if not os.path.isdir(__path_to_error_logs__):
         os.mkdir(__path_to_error_logs__)
     __logger_error_handler__ = RotatingFileHandler(
-        log_path = os.path.join(__path_to_error_logs__, 'logs.txt'),
+        os.path.join(__path_to_error_logs__, 'logs.txt'),
         mode='a',
         maxBytes=__max_log_size__,
         backupCount=5,
@@ -144,7 +151,7 @@ def load_form_working_dir(working_dir):
     if not os.path.isdir(__path_to_debug_logs__):
         os.mkdir(__path_to_debug_logs__)
     __logger_debug_handler__ = RotatingFileHandler(
-        log_path = os.path.join(__path_to_debug_logs__, 'logs.txt'),
+        os.path.join(__path_to_debug_logs__, 'logs.txt'),
         mode='a',
         maxBytes=__max_log_size__,
         backupCount=5,
@@ -195,6 +202,8 @@ def load_form_working_dir(working_dir):
             "fs-crawler-path",
             config_path
         ))
+    global max_workers
+    max_workers = config.get('max-workers', 1)
     # if everything is ok print all config info
 
     print("Current working dir '{}'".format(working_dir))

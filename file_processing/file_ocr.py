@@ -5,16 +5,16 @@ import os
 import shutil
 def run_ocrmypdf(in_put, out_put):
     try:
-        ocrmypdf.configure_logging(
-            verbosity=ocrmypdf.Verbosity(
-                1
-            ),
-
-        )
+        # ocrmypdf.configure_logging(
+        #     verbosity=ocrmypdf.Verbosity(
+        #         1
+        #     ),
+        #
+        # )
         ret =ocrmypdf.api.ocr(
             input_file=in_put,
             output_file= out_put,
-            use_threads =False,
+            use_threads =True,
             language= settings.lang_processing,
             progress_bar= False
 

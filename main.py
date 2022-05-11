@@ -17,37 +17,63 @@ import settings
 settings.load_form_working_dir(working_dir)
 lv_mongo_db.set_working_folder(working_dir)
 settings.logger.info("Running on '{}'".format(working_dir))
-# sys.path.append(working_dir)
-# sys.path.append(os.path.join(working_dir,"evnv"))
-# sys.path.append(os.path.join(working_dir,"evnv","Scripts"))
+import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
 import os.path
 
 import file_consumer
 
 import file_processing
 import _thread
+from multiprocessing import Process, Manager
+__consumer__ = None
 
 
 
+__consumer__ = file_consumer.init_consumer(
+        topic_id="pdf-processing",
+        group_id="lv",
+        bootstrap_servers=settings.kafka_server
+    )
 
+
+def call_handler(
+
+        msg,
+        data,
+        kafka_record,
+
+):
+    global __consumer__
+    file_processing.hander(__consumer__, msg, data, kafka_record)
+    print(data)
 def thead_run(
-        consumer,
+
         msg,
         data,
         kafka_record
 ):
-    _thread.start_new_thread(file_processing.hander, (
-        consumer,
-        msg,
-        data,
-        kafka_record,
-    ))
-file_consumer.runner(
-    logger=settings.logger,
-    topic_id="pdf-processing",
-    process_handler=thead_run,
-    group_id="lv",
-    bootstrap_servers=settings.kafka_server,
+
+    p = Process(
+        target=call_handler,
+        args=(
+
+            msg,
+            data,
+            kafka_record,
+        )
+    )
+    p.start()
+    p.join()
+
+if __name__ == '__main__':
+    file_consumer.runner(
+        current_consumer=__consumer__,
+        logger=settings.logger,
+        topic_id="pdf-processing",
+        process_handler=file_processing.hander,
+        group_id="lv",
+        bootstrap_servers=settings.kafka_server,
 
 
-)
+    )
