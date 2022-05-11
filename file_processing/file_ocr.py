@@ -11,34 +11,34 @@ def run_ocrmypdf(in_put, out_put):
         #     ),
         #
         # )
-        ret =ocrmypdf.api.ocr(
-            input_file=in_put,
-            output_file= out_put,
-            use_threads =True,
-            language= settings.lang_processing,
-            progress_bar= False
-
-        )
-        # cmd = ["ocrmypdf", "--deskew", in_put, out_put]
-        # settings.logger.info(cmd)
-        # proc = subprocess.Popen(
-        #     cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        # result = proc.stdout.read()
-        # if proc.returncode == 6:
-        #     """
-        #     Skipped document because it already contained text
-        #     """
-        #     shutil.move(in_put, out_put)
-        #     return None, result
-        # elif proc.returncode == 0:
+        # ret =ocrmypdf.api.ocr(
+        #     input_file=in_put,
+        #     output_file= out_put,
+        #     use_threads =True,
+        #     language= settings.lang_processing,
+        #     progress_bar= False
+        #
+        # )
+        cmd = ["ocrmypdf", "--deskew", in_put, out_put]
+        settings.logger.info(cmd)
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        result = proc.stdout.read()
+        if proc.returncode == 6:
+            """
+            Skipped document because it already contained text
+            """
+            shutil.move(in_put, out_put)
+            return None, result
+        elif proc.returncode == 0:
+            settings.logger.info(result)
+            return None, result
+        # elif not proc.returncode:
         #     settings.logger.info(result)
-        #     return None, result
-        # # elif not proc.returncode:
-        # #     settings.logger.info(result)
-        # #     return Exception(result), None
-        # if not os.path.isfile(out_put):
-        #     shutil.move(in_put,out_put)
-        # return None, result
+        #     return Exception(result), None
+        if not os.path.isfile(out_put):
+            shutil.move(in_put,out_put)
+        return None, result
     except ocrmypdf.PdfMergeFailedError as e:
         return  e,None
     except ocrmypdf.MissingDependencyError as e:
