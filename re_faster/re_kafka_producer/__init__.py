@@ -1,23 +1,30 @@
 __static_dict__ = None
 
-import kafka
+import confluent_kafka
 import threading as __threading__
 
 __lock__ = __threading__.Lock()
 
-class KafkaProducerAuto(kafka.KafkaProducer):
+class KafkaProducerAuto():
     def __init__(self,topic_key, bootstrap_servers):
         import json
         import time
+        self.__producer__ = None
         is_ok= False
+        self.bootstrap_servers =bootstrap_servers
         while not  is_ok:
             try:
-                super().__init__(
-                    bootstrap_servers=bootstrap_servers,
-                    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+                self.__producer__ = confluent_kafka.Producer(
+                    {
+                        'bootstrap.servers':",".join(self.bootstrap_servers)
+                        # 'socket.timeout.ms': 100,
+                        # 'api.version.request': 'false',
+                        # 'broker.version.fallback': '0.9.0',
+                    }
                 )
+
                 is_ok = True
-            except:
+            except Exception as e:
                 time.sleep(0.3)
 
 
@@ -40,15 +47,24 @@ class KafkaProducerAuto(kafka.KafkaProducer):
                 self.topic_key = topic_key
 
             def send(self, value=None, key=None, headers=None, partition=None, timestamp_ms=None):
+                import json
                 assert isinstance(self.__owner__, KafkaProducerAuto.__Topic__)
                 assert isinstance(self.__owner__.__owner__, KafkaProducerAuto)
-                ret=self.__owner__.__owner__.send(
-                    topic= self.topic_key,
-                    value= value,
-                    partition= partition,
-                    headers = headers,
-                    timestamp_ms= timestamp_ms
+
+                def delivery_report(err, msg):
+                    if err:
+                        print(err)
+                    else:
+                        print(msg)
+
+                ret=self.__owner__.__owner__.__producer__.produce(
+                    self.topic_key,
+                    json.dumps(value,check_circular=False),
+                    callback=delivery_report
+
                 )
+
+
                 return ret
 
 
@@ -66,7 +82,7 @@ def __producer__(
     assert isinstance(servers, list), 'producer_name must be str[]'
 
     producer_name = producer_name.lower()
-    from kafka import KafkaProducer
+    from confluent_kafka import Producer
 
     import json
     if not __static_dict__:
@@ -75,9 +91,9 @@ def __producer__(
         __lock__.release()
     ret = __static_dict__.get(producer_name, None)
 
-    if not isinstance(ret, KafkaProducer):
+    if not isinstance(ret, Producer):
         __lock__.acquire()
-        ret = KafkaProducer(
+        ret = Producer(
             bootstrap_servers=servers,
             value_serializer=lambda v: json.dumps(v).encode('utf-8')
         )
@@ -93,12 +109,15 @@ class Bootstrap:
         """
         assert isinstance(bootstrap_servers, list), 'producer_name must be str[]'
         self.__bootstrap_servers__ = bootstrap_servers
-        self.producers = Bootstrap.Producer(self)
+        self.producers = Bootstrap.ReProducer(self)
 
-    class Producer:
+    class ReProducer:
         def __init__(self, owner):
             self.__owner__ = owner
-
+        # def __getitem__(self, item):
+        #     print("get_" + item)
+        # def __getattr__(self, item):
+        #     print("get_"+item)
         def __getattr__(self, item):
             assert isinstance(self.__owner__, Bootstrap)
             return KafkaProducerAuto(item, self.__owner__.__bootstrap_servers__)
