@@ -9,6 +9,14 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+import os
+import sys
+from pathlib import Path
+print(os.getcwd())
+root_path = Path(os.getcwd()).parent.absolute()
+sys.path.append(root_path)
+sys.path.append(os.path.join(root_path,"api_apps"))
+sys.path.append(os.path.join(root_path,"api_apps","files_servers"))
 
 from pathlib import Path
 
@@ -31,6 +39,10 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'django.contrib.sites',
+    'rest_framework',
+    'api_apps.files_server.apps.FilesServerConfig',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
